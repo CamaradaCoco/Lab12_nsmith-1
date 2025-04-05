@@ -4,6 +4,7 @@ import sys
 import pygame as pg
 from settings import Settings
 from ship import Ship
+from bullet import Bullet
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -14,19 +15,32 @@ class AlienInvasion:
         self.clock = pg.time.Clock()
         self.settings = Settings()
 
-        self.screen = pg.display.set_mode(
-            (self.settings.screen_width, self.settings.screen_height))
+        # Set up screen, fullscreen.
+        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+        self.settings.screen_width = self.screen.get_width()
+        self.settings.screen_height = self.screen.get_height()
+
+        # Set title bar of game window.
         pg.display.set_caption("Alien Invasion")
 
+        # Create instance of Ship class.
         self.ship = Ship(self)
+        # Create a group to store bullets in.
+        self.bullets = pg.sprite.Group()
 
     def run_game(self):
         """Start the main loop for the game."""
         while True:
             self._check_events()
             self.ship.update()
+            self.bullets.update()
             self._update_screen()
             self.clock.tick(60)
+
+            # Delete bullets that have disappeared.
+            for bullet in self.bullets.copy():
+                if bullet.rect.bottom <= 0:
+                    self.bullets.remove(bullet)
 
     def _check_events(self):
         """Respond to keypresses and mouse events."""
@@ -46,6 +60,8 @@ class AlienInvasion:
             self.ship.moving_left = True
         elif event.key == pg.K_q:
             sys.exit()
+        elif event.key == pg.K_SPACE:
+            self._fire_bullet()
    
     def _check_keyup_events(self, event):
         """Respond to key releases."""
@@ -54,9 +70,15 @@ class AlienInvasion:
         elif event.key == pg.K_LEFT:
             self.ship.moving_left = False
 
+    def _fire_bullet(self):
+        """Create a new bullet and add it to the bullets group."""
+        new_bullet = Bullet(self)
+        self.bullets.add(new_bullet)
     
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
         self.ship.blitme()
 
         pg.display.flip()
