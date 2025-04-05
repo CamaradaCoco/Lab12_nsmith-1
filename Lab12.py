@@ -1,4 +1,4 @@
-# Lab 12 / #1
+# Lab 12 #1 / Nicholas Smith / 5 April 2025
 
 import sys
 import pygame as pg
@@ -34,16 +34,13 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self.bullets.update()
+            self._update_bullets()
             self._update_screen()
             self.clock.tick(60)
 
-            # Delete bullets that have disappeared.
-            for bullet in self.bullets.copy():
-                if bullet.rect.bottom <= 0:
-                    self.bullets.remove(bullet)
-
     def _check_events(self):
-        """Respond to keypresses and mouse events."""
+        """Respond to keypresses and mouse events.
+        """
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 sys.exit()
@@ -53,7 +50,13 @@ class AlienInvasion:
                 self._check_keyup_events(event)
 
     def _check_keydown_events(self, event):
-        """Respond to key presses.""" 
+        """
+        Respond to key presses.
+
+        Args:
+            event (pygame.event.Event): The event object containing information about the key press.
+
+        """
         if event.key == pg.K_RIGHT:
             self.ship.moving_right = True
         elif event.key == pg.K_LEFT:
@@ -64,7 +67,12 @@ class AlienInvasion:
             self._fire_bullet()
    
     def _check_keyup_events(self, event):
-        """Respond to key releases."""
+        """Respond to key releases.
+        
+        Args: 
+            event (pygame.event.Event): The event object containing information about the key press
+        
+        """
         if event.key == pg.K_RIGHT:
             self.ship.moving_right = False
         elif event.key == pg.K_LEFT:
@@ -72,10 +80,24 @@ class AlienInvasion:
 
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
-        new_bullet = Bullet(self)
-        self.bullets.add(new_bullet)
+        if len(self.bullets) < self.settings.bullets_allowed:
+            new_bullet = Bullet(self)
+            self.bullets.add(new_bullet)
+
+    def _update_bullets(self):
+        """Update position of bullets and get rid of old bullets."""
+        # Update bullet positions.
+        self.bullets.update()
+
+        # Get rid of bullets that have disappeared.
+        for bullet in self.bullets.copy():
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
     
     def _update_screen(self):
+        """Update images on the screen, and flip to the new screen."""
+        
+        # Set background color, redraw the screen during each pass through the loop.
         self.screen.fill(self.settings.bg_color)
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
